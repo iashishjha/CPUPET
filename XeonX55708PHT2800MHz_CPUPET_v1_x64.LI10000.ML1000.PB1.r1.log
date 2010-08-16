@@ -1,0 +1,54 @@
+the LIBC version should be > 2.4 for this program, yours is 2.11.1
+### START CMDLINE PARAMS ###
+	full_cmdline=./CPUPET_v1_x64 10000 1000 1 1 2800 2800 
+	loopIterationCount = 10000
+	InputData.Length=1000
+	numThreadsToRun = 1
+	doPROCBind = 1
+	PROCFreqMHz = 2800
+	RDTSCFreqMHz = 2800
+other derived/constant params
+	normFactor (PROCFreqMHz/RDTSCFreqMHz) = 1.000  
+	InputData.DelayCount=0
+### END ###
+
+8 of 8 Procs Online
+THREAD#00 START!!!
+@@@THREAD#00: cpumask desired=0
+THREAD#00: pinCPU pthread_mutex_lock=0
+THREAD#00: OLD affinity=255, cpuset.__bits[0]=120
+THREAD#00: NEW affinity=1, cpuset.__bits[0]=120
+THREAD#00: posix_memalign 0x18d4040
+THREAD#00: posix_memalign 0x18e3a80
+THREAD#00: posix_memalign 0x18f34c0
+130.0   1300.0  13000.0 130000.0 
+230.0   2300.0  23000.0 230000.0 
+330.0   3300.0  33000.0 330000.0 
+430.0   4300.0  43000.0 430000.0 
+THREAD#00: pthread_mutex_lock=0
+THREAD#00: pthread_cond_broadcast=0
+THREAD#00: pthread_mutex_unlock=0
+THREAD#00 MatMul Validation successfull
+THREAD#00 END!!!
+
+### START ###
+*** Results for MatMul with 1 threads
+PROCFreqMHz = 2800
+RDTSCFreqMHz = 2800
+doPROCBind=1
+InputData.Length=1000
+InputData.LoopIter=10000
+
+*** START STAT for THREAD#00
+	$$$TEST VALIDATION PASSED!!!
+	starttime 1281898260sec 51773usec
+	endtime 1281898260sec 439716usec
+	Length = 1000
+	LoopIter = 10000
+	Total ops = 10000000.000
+	spent time 0.387943 seconds(0sec + 387943usec)
+	Million op/sec = 25.777 
+	Million op/sec w/ normFactor = 25.777 
+
+*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.777 ,THREAD#00=, 25.777 
+### END ###
