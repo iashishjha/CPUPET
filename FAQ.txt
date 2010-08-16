@@ -1,0 +1,114 @@
+FAQ.txt - Frequently Asked Questions for the CPUPET Tool
+CPUPET - The CPU Performance Evaluation Tool
+
+Created by Ashish Jha
+iashishjha@yahoo.com
+August 13 2010
+
+COPYRIGHT 2010 Ashish Jha. All rights reserved.
+This software is licensed under the "The GNU General Public License (GPL) Version 2". Before viewing, copying or distribution this software, please check the full  terms of the license in the file LICENSE.txt or COPYING.txt
+
+Q1. What is CPUPET?
+	CPUPET is an Open source tool for evaluating performance of CPU and its surrounding systems like the memory, inter-connect, etc. It can also be used to evaluate multi-core systems to look at scaling across cores, full memory bandwidth and cache sharing issues as well as evulate OS scheduling policies when number of threads are less than number of logical CPU's.
+
+Q2. What components of CPU does it measure/stress and what it doesn't?
+	It can stress the following components:
+	
+		Single CPU
+			Current version of CPUPET can stress the CPU to measure its performance for the given task.	Running with one threads would help stress one CPU. You could run hardware profiles to further analyze CPU micro-architecture performance.	
+		
+		Caches
+			You could increase the input parameter MEM_LENGTH to stress different cache levels for your CPU.
+		
+		Memory
+			You could increase the input parameter MEM_LENGTH to stress the main-memory.
+		
+		CPU inter-connect
+			Along with MEM_LENGTH to be set to size above the last-level cache for your CPU, you could increase the input parameter NUM_THREADS to set it to max CPU count, which would then stress the inter-connect between CPU's ( such as bus or the hyper-transport)
+		
+		Many-Core CPU's
+			Increase NUM_THREADS to measure many-core scaling and analyze performance scaling.
+			
+		OS Scheduler
+			Increase NUM_THREADS along with PROC_BIND(set to 0 or 1) to look at any OS scheduling issues or analyze different OS scheduling algorithms.
+			
+Q5. There are so many benchmarks, why one would use CPUPET?	
+	Yes, there are lots of benchmarks for measuring CPU performance. One such popular one is from SPEC which has set of INT and FP benchmark and can look at single CPU performance or performance across many-cores (when running SPEC rate mode). However, these benchmarks are not free. Further, even though you could modify the benchmarks but then for your own study and not for publication as it would voilate spec licensing agreements. Even for publishing your independent result you would need to get it review and permission by the SPEC committee. Other downside is that these benchmarks are more geared towards compiler performance and some are complex to understand. If you have your own problem set then CPUPET is more widely suited as you could simply add an extra method to this tool without having to spend so much time having to study the complex spec suite. CPUPET is opensource and in compliance with GNU GPL lincense version 2.0, you have complete flexibility and authority over the test you want done, analyze and publish. Moreover, CPUPET not only tests single CPU and many-core CPU performance but it could also indvidually test cache, memory, inter-connect performance just by tuning the input knobs to the tool.	
+	
+Q7. What is the licensing terms and agreements for this tool?
+	CPUPET uses GNU GPL version 2.0 license. Please look at LICENSE.txt and COPYING the text for full details on licensing terms and agreements.
+
+	
+Q2. What does CPUPET measure and what is the unit of measurement?
+		Current version of CPUPET measures how many square matrix multiplication a CPU can complete per sec. The unit of measurement is called MOps i.e. Million Matrix Multiplication Operations Per Sec.
+		The matrix multiplication done is:
+			float C[4][4] = A[4][4] * B[4][4]
+		Based on input parameter memory length (InputData.Length), the program creates memory for each of the above 3 elements with size InputData.Length * (4*4*sizeof(float)). The program then iterates over each of 4x4 matrixes to complete the multiplication. 
+	
+Q3. How do you compile this tool?
+	Go to the source directory for this tool (place where you have placed all the files for this tool) and type make.
+	
+	The file "makefile" has all the necessary commands for compiling and generating the executable for this tool.
+				
+Q4. What are the input parameters and how do your run the tool?
+	Please look into run.sh file.
+	
+	The tool takes the following input parameters:
+	./${EXE} ${LOOP_ITER} ${MEM_LENGTH} ${NUM_THREADS} ${PROC_BIND} ${PROC_FREQ_MHZ} ${RDTSC_FREQ_MHZ}
+	
+	Such as
+	./CPUPET_v1_x64 10000 1000 1 1 2800 2800
+	
+	where
+	EXE  			= 	name of the tool. Currently set to CPUPET_v1_x64
+	LOOP_ITER 		=	The number of times you want to repeat i.e. loop over the problem. This allows to give more repeatable and stable results from run-to-run
+	MEM_LENGTH		=	Input problem size for the matrix multiplication. Since we have 3 matrix'es with 2 being input and 1 output, the total problem size is: 3 * (4x4*sizeof(float) * MEM_LENGTH). You could increase this number to stress different levels of cache and main memory.
+	NUM_THREADS		=	The number of threads you want to run. CPUPET spawns NUM_THREADS, where each thread is working on independent and hence parallel matrix-multiplications. Each thread spwans its own MEM_LENGTH and works on its own matrix multiplication. Before each thread starts to work, they synchronize at a barrier point so that all start working at same time. If PROC_BIND is not set i.e. 0, then the OS schedules the threads to a CPU. If set i.e. 1, then the program set's the spawned threads to CPU 0 to n in order. This allows to look at CPU Core scaling as well as study OS scheduling algorithms and issues. The max NUM_THREADS is fixed to 16 but can be changed.
+	PROC_BIND		=	Accepts as value of 0 or 1. If PROC_BIND is not set i.e. 0, then the OS schedules the threads to a CPU. If set i.e. 1, then the program set's the spawned threads to CPU 0 to n in order.
+	PROC_FREQ_MHZ	=	CPU frequency in MHz. For example for 2.8GHz Intel Core i7, its 2800 MHz
+	RDTSC_FREQ_MHZ	=	The CPU RDTSC frequency in MHz. Generally its same as PROC_FREQ_MHZ.
+		
+Q5. How accurate are the results?
+		For any given size of the problem set i.e. InputData.Length, the kernel validates the results against reference matrix. For more repeatable results, increase the LoopIter program input. For the results I have measured, I have seen pretty stable results from run to run as can be seen here for 5 back-to-back runs with input as ./CPUPET_v1_x64 10000 1000 1 1 2800 2800:
+			*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.832 ,THREAD#00=, 25.832
+			*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.711 ,THREAD#00=, 25.711
+			*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.739 ,THREAD#00=, 25.739
+			*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.761 ,THREAD#00=, 25.761
+			*** Op/sec Results for, MatMul 1 threads with doPROCBind=1,Total Mops=,25.591 ,THREAD#00=, 25.591		
+			
+		Further, note that if you don't have PROC_BIND set, you might see variance from run to run, specially when running multiple threads. This is due to OS scheduling policies when OS put 2 threads on the same physical Core (such as CPU's with Hyper-Threading) even though there is an idle physical core. Depending on input data size the performance could be lower as 2 logical threads share the same resources of a physical CPU. This in fact is not the problem with your CPU, but can reveal OS scheduling optimization oppurtunities.
+
+Q6. What OS'es and CPU's is this tool supported and is there any compiler or other limitations?
+	The tool can work on any linux OS having linux kernel 2.6 and above. The only supported CPU's for the current version 1.0 is x86 and x86-64 (which comes mostly from Intel and AMD).
+	
+	The tool would only work with GCC compiler version > 4.2 as for versions below CPU affinity methods are not fully supported. Further, the GLIBC shared library should be version 2.4 and above as pthread affinity is not supported for lower versions.
+
+	The tool should work with any other C compiler and linux OS'es provided they support CPU affinity using pthread API's.	
+	
+Q7. What OS'es and CPU's has this tool been tested?
+	CPUPET has been tested on Ubuntu Linux SMP 2.6.32-22-generic and a single socket 4 Core with HT 2.8GHz Intel Core i7 x86-64 CPU.
+	
+Q8. Any plans on updating or adding any new feature for this tool?
+	Yes, I would like to have the following features implemented first in the upcoming months:
+	1. Measure time using clockticks
+	2. Implement a faster version of Matrix Multiplication using packed SSE. This would be more efficient than the current implementation which is plain C, which depending on the compiler would either compiler to x87 code (slower) or scalar SSE which is slower than packed SSE.
+	
+	You are more than welcome to contribute as well as add any new feature.
+		
+
+Q5. Is there any royality charge or cost for using the tool and do we have to get any permission for publishing results with this tool?
+	Any usage of CPUPET is bounds by GNU GPL version 2.0 lincense.
+	
+	No, there is no royality charge or cost for using the CPUPET. No, you don't need my permission for publishing results with CPUPET but you are more than welcome to update or copy me on any results. 
+	
+Q8. Problems, Questions and Feedback on this tool - who should we contact?
+	Please feel free to let me know at iashishjha@yahoo.com
+	
+Q9. Whould you be able to add any extra features if we want so?
+	I would have to look at my schedule but certainly let me know. Further, this is the purpose of having an Open Source tool so that anyone can go use and custom modify for their use in compliance with the licensing terms of the tool (which is GPL for CPUPET).
+	
+Q7. Would you like to be informed on any results with this tool and can we cite your name in research and publication papers?
+	Sure, it would be good to know results you are getting with the tool. Feel free to cite my name wherever you use would cite results with the CPUPET tool.
+	
+
+
